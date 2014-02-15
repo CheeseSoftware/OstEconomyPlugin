@@ -1,0 +1,8 @@
+name: OstEconomyPlugin
+main: ostkaka34.OstEconomyPlugin.OstEconomyPlugin
+version: 0
+commands:
+   buy:
+      description: Let you buy items.
+      usage: /buy <item> [amount]
+      permission: osteconomy.buy
