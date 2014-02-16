@@ -19,6 +19,7 @@ public class EPlayer {
 		this.player = player;
 		
 		xpInventory.add(Material.WOOD_SPADE);
+		xpInventory.add(Material.STICK);
 		
 		Reset();
 	}
@@ -26,18 +27,22 @@ public class EPlayer {
 	protected boolean PutInInventory(Material item) {
 		Inventory inventory = player.getInventory();
 		
-		if (inventory.contains(Material.AIR)) {
-			int place = inventory.first(Material.AIR);
-			inventory.setItem(place, new ItemStack(item));
-			return true;
-		}
+		inventory.addItem(new ItemStack(item, 1));
 		
-		return false;
+		return true;
+		//if (inventory.)) {
+		//	int place = inventory.firstEmpty();
+		//	inventory.setItem(place, new ItemStack(item, 1));
+		//	return true;
+		//}
+		//return false;
 	}
 	
 	public void Reset()
 	{
 		this.money = 0;
+		
+		player.getInventory().clear();
 		
 		Iterator<Material> iterator = xpInventory.iterator();
 		while(iterator.hasNext()) {
