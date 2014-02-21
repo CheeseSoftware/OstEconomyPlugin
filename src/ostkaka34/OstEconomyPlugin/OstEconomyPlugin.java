@@ -1,5 +1,9 @@
 package ostkaka34.OstEconomyPlugin;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -27,19 +31,29 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	protected Map<String, Material> shopItemNames = new HashMap<String, Material>();
 	protected Map<String, Material> xpShopItemNames = new HashMap<String, Material>();
 	
-	protected void LoadPlayer(Player player) {
-		if (ePlayers.containsKey(player))
-			ePlayers.remove(player);
-		
-		ePlayers.put(player, new EPlayer(player));
-	}
+	protected Map<Material, String> shopItemNames2 = new HashMap<Material, String>();
+	protected Map<Material, String> xpShopItemNames2 = new HashMap<Material, String>();
 	
+	protected void LoadPlayer(Player player) {
+		if (ePlayers.containsKey(player)) {
+			ePlayers.get(player).Destroy(this);
+			ePlayers.remove(player);
+		}
+		
+		ePlayers.put(player, new EPlayer(player, this));
+	}
 	@Override
 	public void onEnable(){
 		//getCommand("testcommand").setExecutor(this);
 		getServer().getPluginManager().registerEvents(this, this);
 		
+		//saveDefaultConfig();
+		
 		Player[] players = getServer().getOnlinePlayers();
+		
+		File f = new File(this.getDataFolder() + "/");
+		if(!f.exists())
+		    f.mkdir();
 		
 		for (int i = 0; i < players.length; i++) {
 			LoadPlayer(players[i]);
@@ -48,7 +62,10 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	
 	@Override
 	public void onDisable(){
-		
+		Iterator<Entry<Player, EPlayer>> iterator = ePlayers.entrySet().iterator();
+		while (iterator.hasNext()) {
+			iterator.next().getValue().Destroy(this);
+		}
 	}
 	
 	@EventHandler
@@ -62,8 +79,10 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
 		
-		if (ePlayers.containsKey(player))
+		if (ePlayers.containsKey(player)) {
+			ePlayers.get(player).Destroy(this);
 			ePlayers.remove(player);
+		}
 	}
 	
 	@EventHandler
@@ -101,10 +120,9 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 				String items = "";
 				
 				 Iterator<Entry<Material, Integer>> it = shopItems.entrySet().iterator();
-				 Iterator<Entry<String, Material>> it2 = shopItemNames.entrySet().iterator();
 		        while (it.hasNext()) {
 		            Map.Entry<Material, Integer> pairs = (Map.Entry<Material, Integer>)it.next();
-		            items += "\n" + it2.next().getKey() + " - $" + pairs.getValue().toString();
+		            items += "\n" + shopItemNames2.get(pairs.getKey()) + " - $" + pairs.getValue().toString();
 		        }
 				
 				sender.sendMessage("Items: " + items);
@@ -130,10 +148,9 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 				String items = "";
 				
 		        Iterator<Entry<Material, Integer>> it = xpShopItems.entrySet().iterator();
-		        Iterator<Entry<String, Material>> it2 = xpShopItemNames.entrySet().iterator();
 		        while (it.hasNext()) {
 		            Map.Entry<Material, Integer> pairs = (Map.Entry<Material, Integer>)it.next();
-		            items += "\n" + it2.next().getKey() + " - $" + pairs.getValue().toString();
+		            items += "\n" + xpShopItemNames2.get(pairs.getKey()) + " - $" + pairs.getValue().toString();
 		        }
 				
 				sender.sendMessage("Items: " + items);
@@ -190,7 +207,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 		        	return false;
 		        }
 		        
-		        player.sendMessage(i + "/" + amount + " " + material.toString() +
+		        player.sendMessage(i + "/" + amount + " " + shopItemNames.get(material) +
 		        		" bought! You have $" + eplayer.getMoney() + " left.");
 		        
 		        return (i > 0);
@@ -218,7 +235,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 		        	return false;
 		        }
 		        
-		        player.sendMessage(i + "/" + amount + " " + material.toString() +
+		        player.sendMessage(i + "/" + amount + " " + xpShopItemNames.get(material) +
 		        		" bought! You have $" + eplayer.getXp() + " left.");
 		        
 		        return (i > 0);
@@ -230,7 +247,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	public boolean BuyShopItem(Player player, String material, int amount) {
 		Material m;
 		
-		if (shopItemNames.containsKey(material))
+		if (shopItemNames.containsKey(material.toLowerCase()))
 			m = shopItemNames.get(material);
 		else
 			m = Material.AIR;
@@ -241,7 +258,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	public boolean BuyXPShopItem(Player player, String material, int amount) {
 		Material m;
 		
-		if (xpShopItemNames.containsKey(material))
+		if (xpShopItemNames.containsKey(material.toLowerCase()))
 			m = xpShopItemNames.get(material);
 		else
 			m = Material.AIR;
@@ -252,12 +269,15 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	@Override
 	public void RegisterShopItem(Material material, long price, String name, boolean maxOne) {
 		shopItems.put(material, (Integer)(int)price);
-		shopItemNames.put(name, material);
+		shopItemNames.put(name.toLowerCase(), material);
+		shopItemNames2.put(material, name.toLowerCase());
 	}
 
 	@Override
 	public void RegisterXPShopItem(Material material, long price, String name, boolean maxOne) {
 		xpShopItems.put(material, (Integer)(int)price);
-		xpShopItemNames.put(name, material);
+		xpShopItemNames.put(name.toLowerCase(), material);
+		xpShopItemNames2.put(material, name.toLowerCase());
 	}
+	
 }
