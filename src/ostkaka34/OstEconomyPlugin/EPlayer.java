@@ -10,117 +10,99 @@ import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-public class EPlayer {
+public class EPlayer
+{
 	protected Player player;
 	protected long money = 1000;
 	protected long xp = 0;
 	protected List<Material> xpInventory = new ArrayList<Material>();
-	
-	@SuppressWarnings("deprecation")
-	public EPlayer(Player player, OstEconomyPlugin plugin) {
+	protected File configFile;
+
+	public EPlayer(Player player, OstEconomyPlugin plugin)
+	{
 		this.player = player;
+		configFile = new File(plugin.getDataFolder() + File.separator + "playerdata" + File.separator + player.getName() + ".yml");
 		
-		//File file = plugin.getDataFolder();
-		File file = new File(plugin.getDataFolder() + File.separator + "playerdata" + File.separator + player.getName() + ".yml");
-		
-		
-		if (file.exists()) {
-			YamlConfiguration config = new YamlConfiguration();
-			
-			try {
-				config.load(file);
-				xp = config.getLong(player.getName() + ".xp");
-				List<Integer> inventory = config.getIntegerList(player.getName() + ".inventory");
-				
-				//config.s
-				
-				Iterator<Integer> iterator = inventory.iterator();
-				while(iterator.hasNext()) {
-					xpInventory.add(Material.getMaterial(iterator.next()));
-				}
-				
-				
-			} catch (IOException | InvalidConfigurationException e) {
-				// TODO Auto-generated catch block
+		if (!configFile.exists())
+		{
+			try
+			{
+				configFile.createNewFile();
+			}
+			catch (IOException e)
+			{
 				e.printStackTrace();
 			}
+			this.SaveConfig();
 		}
-		else {
-			try {
-				file.createNewFile();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		this.Load();
 	}
 	
-	public void Destroy(OstEconomyPlugin plugin) {
-		File file = new File(plugin.getDataFolder() + File.separator + "playerdata" + File.separator + player.getName() + ".yml");
-		
-		if (!file.exists()) {
-			try {
-				file.createNewFile();
-			}
-			catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+	protected void SaveConfig()
+	{
+		YamlConfiguration config = new YamlConfiguration();
+		try
+		{
+			List<Integer> inventory = getInventoryData();
+			config.set("xp", getXp());
+			config.set("inventory", inventory);
+			config.save(configFile);
 		}
-		
-		try {
-			YamlConfiguration config = new YamlConfiguration();
-			
-			//Iterator<Entry<Player, EPlayer>> iterator = ePlayers.entrySet().iterator();
-			
-			/*while (iterator.hasNext()) {
-				try {
-				EPlayer player = iterator.next().getValue();*/
-				
-				List<Integer> inventory = getInventoryData();
-				
-				config.set("xp", getXp());
-				config.set("inventory", inventory);
-				
-			//}
-			
-			config.save(file);
-		}
-		catch (IOException e) {
-			 //TODO Auto-generated catch block
+		catch (IOException e)
+		{
 			e.printStackTrace();
 		}
-		
+	}
+
+	@SuppressWarnings("deprecation")
+	protected void LoadConfig()
+	{
+		YamlConfiguration config = new YamlConfiguration();
+		try
+		{
+			config.load(configFile);
+			xp = config.getLong(player.getName() + ".xp");
+			List<Integer> inventory = config.getIntegerList(player.getName() + ".inventory");
+			Iterator<Integer> iterator = inventory.iterator();
+			while (iterator.hasNext())
+			{
+				xpInventory.add(Material.getMaterial(iterator.next()));
+			}
+		}
+		catch (IOException | InvalidConfigurationException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void Save()
+	{
+		this.SaveConfig();
 	}
 	
-	@SuppressWarnings("deprecation")
-	protected boolean PutInInventory(Material item, int amount) {
-		Inventory inventory = player.getInventory();
+	public void Load()
+	{
+		this.LoadConfig();
+	}
 
-		inventory.addItem(new ItemStack(item, amount));
+	@SuppressWarnings("deprecation")
+	protected boolean PutInInventory(Material item, int amount)
+	{
+		player.getInventory().addItem(new ItemStack(item, amount));
 		player.updateInventory();
 		return true;
-		
-		//if (inventory.)) {
-		//	int place = inventory.firstEmpty();
-		//	inventory.setItem(place, new ItemStack(item, 1));
-		//	return true;
-		//}
-		//return false;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	public void Reset()
 	{
 		this.money = 1000;
-		
 		player.getInventory().clear();
-		
 		Iterator<Material> iterator = xpInventory.iterator();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext())
+		{
 			player.getInventory().addItem(new ItemStack(iterator.next()));
 		}
 		
@@ -130,66 +112,76 @@ public class EPlayer {
 		PutInInventory(Material.TORCH, 16);
 		PutInInventory(Material.WOOL, 16);
 		PutInInventory(Material.WEB, 4);
-		
 		player.updateInventory();
-		
+		this.Save();
 	}
-	
-	public boolean Buy(long money, Material item) {
+
+	public boolean Buy(long money, Material item)
+	{
 		if (this.money > money)
 		{
-			if (PutInInventory(item,1))
+			if (PutInInventory(item, 1))
 			{
 				this.money -= money;
+				this.Save();
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	public boolean XpBuy(long xp, Material item) {
+
+	public boolean XpBuy(long xp, Material item)
+	{
 		if (this.xp > xp)
 		{
 			if (!xpInventory.contains(item))
 			{
-				if (PutInInventory(item,1))
+				if (PutInInventory(item, 1))
 				{
 					this.xp -= xp;
 					xpInventory.add(item);
+					this.Save();
 					return true;
 				}
 			}
 		}
 		return false;
 	}
-	
-	public void GiveMoney(long money) {
+
+	public void GiveMoney(long money)
+	{
 		this.money += money;
 		this.xp += money;
+		this.Save();
 	}
-	
-	public List<Material> getXpInventory() {
+
+	public List<Material> getXpInventory()
+	{
 		return null;
 	}
-	
-	public long getMoney() {
+
+	public long getMoney()
+	{
 		return this.money;
 	}
-	
-	public long getXp() {
+
+	public long getXp()
+	{
 		return this.xp;
 	}
-	
-	public Player getPlayer() {
+
+	public Player getPlayer()
+	{
 		return player;
 	}
 
 	@SuppressWarnings("deprecation")
-	public List<Integer> getInventoryData() {
+	public List<Integer> getInventoryData()
+	{
 		List<Integer> inventory = new ArrayList<Integer>();
-		
-		Iterator<Material> iterator = xpInventory.iterator();	
-		while(iterator.hasNext())
+
+		Iterator<Material> iterator = xpInventory.iterator();
+		while (iterator.hasNext())
 			inventory.add(iterator.next().getId());
 
 		return inventory;
