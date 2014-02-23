@@ -1,7 +1,6 @@
 package ostkaka34.OstEconomyPlugin;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -25,7 +24,7 @@ public class EPlayer {
 		this.player = player;
 		
 		//File file = plugin.getDataFolder();
-		File file = new File(plugin.getDataFolder() + File.separator + "playerdata.yml");
+		File file = new File(plugin.getDataFolder() + File.separator + "playerdata" + File.separator + player.getName() + ".yml");
 		
 		
 		if (file.exists()) {
@@ -33,8 +32,8 @@ public class EPlayer {
 			
 			try {
 				config.load(file);
-				xp = config.getLong(player.getName() + "xp");
-				List<Integer> inventory = config.getIntegerList(player.getName() + "inventory");
+				xp = config.getLong(player.getName() + ".xp");
+				List<Integer> inventory = config.getIntegerList(player.getName() + ".inventory");
 				
 				//config.s
 				
@@ -50,10 +49,6 @@ public class EPlayer {
 			}
 		}
 		else {
-			xpInventory.add(Material.WOOD_SPADE);
-			for (int i = 0; i < 4; i++)
-				PutInInventory(Material.STICK);
-			
 			try {
 				file.createNewFile();
 			} catch (IOException e) {
@@ -63,34 +58,38 @@ public class EPlayer {
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void Destroy(OstEconomyPlugin plugin) {
-		File file = new File(plugin.getDataFolder() + File.separator + "playerdata.yml");
+		File file = new File(plugin.getDataFolder() + File.separator + "playerdata" + File.separator + player.getName() + ".yml");
 		
 		if (!file.exists()) {
 			try {
 				file.createNewFile();
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
-		YamlConfiguration config = new YamlConfiguration();
-			
 		try {
-			List<Integer> inventory = new ArrayList<Integer>();
+			YamlConfiguration config = new YamlConfiguration();
+			
+			//Iterator<Entry<Player, EPlayer>> iterator = ePlayers.entrySet().iterator();
+			
+			/*while (iterator.hasNext()) {
+				try {
+				EPlayer player = iterator.next().getValue();*/
 				
-			Iterator<Material> iterator = xpInventory.iterator();
-			while(iterator.hasNext()) {
-				inventory.add(iterator.next().getId());
-			}
+				List<Integer> inventory = getInventoryData();
 				
-			config.set(player.getName() + "xp", this.xp);
-			config.set(player.getName() + "inventory", inventory);
+				config.set("xp", getXp());
+				config.set("inventory", inventory);
+				
+			//}
+			
 			config.save(file);
-				
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			 //TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -98,10 +97,10 @@ public class EPlayer {
 	}
 	
 	@SuppressWarnings("deprecation")
-	protected boolean PutInInventory(Material item) {
+	protected boolean PutInInventory(Material item, int amount) {
 		Inventory inventory = player.getInventory();
 
-		inventory.addItem(new ItemStack(item, 1));
+		inventory.addItem(new ItemStack(item, amount));
 		player.updateInventory();
 		return true;
 		
@@ -124,6 +123,14 @@ public class EPlayer {
 		while(iterator.hasNext()) {
 			player.getInventory().addItem(new ItemStack(iterator.next()));
 		}
+		
+		PutInInventory(Material.COOKED_BEEF, 16);
+		PutInInventory(Material.WOOD_SPADE, 1);
+		PutInInventory(Material.STICK, 16);
+		PutInInventory(Material.TORCH, 16);
+		PutInInventory(Material.WOOL, 16);
+		PutInInventory(Material.WEB, 4);
+		
 		player.updateInventory();
 		
 	}
@@ -131,14 +138,10 @@ public class EPlayer {
 	public boolean Buy(long money, Material item) {
 		if (this.money > money)
 		{
-			if (!xpInventory.contains(item))
+			if (PutInInventory(item,1))
 			{
-				if (PutInInventory(item))
-				{
-					this.money -= money;
-					xpInventory.add(item);
-					return true;
-				}
+				this.money -= money;
+				return true;
 			}
 		}
 		return false;
@@ -147,11 +150,14 @@ public class EPlayer {
 	public boolean XpBuy(long xp, Material item) {
 		if (this.xp > xp)
 		{
-			if (PutInInventory(item))
+			if (!xpInventory.contains(item))
 			{
-				this.xp -= xp;
-				xpInventory.add(item);
-				return true;
+				if (PutInInventory(item,1))
+				{
+					this.xp -= xp;
+					xpInventory.add(item);
+					return true;
+				}
 			}
 		}
 		return false;
@@ -167,14 +173,25 @@ public class EPlayer {
 	}
 	
 	public long getMoney() {
-		return money;
+		return this.money;
 	}
 	
 	public long getXp() {
-		return xp;
+		return this.xp;
 	}
 	
 	public Player getPlayer() {
 		return player;
+	}
+
+	@SuppressWarnings("deprecation")
+	public List<Integer> getInventoryData() {
+		List<Integer> inventory = new ArrayList<Integer>();
+		
+		Iterator<Material> iterator = xpInventory.iterator();	
+		while(iterator.hasNext())
+			inventory.add(iterator.next().getId());
+
+		return inventory;
 	}
 }

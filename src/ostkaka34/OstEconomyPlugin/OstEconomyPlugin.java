@@ -1,9 +1,6 @@
 package ostkaka34.OstEconomyPlugin;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,7 +12,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -51,7 +47,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 		
 		Player[] players = getServer().getOnlinePlayers();
 		
-		File f = new File(this.getDataFolder() + "/");
+		File f = new File(this.getDataFolder() + File.separator + "playerdata" + File.separator);
 		if(!f.exists())
 		    f.mkdir();
 		
@@ -62,10 +58,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	
 	@Override
 	public void onDisable(){
-		Iterator<Entry<Player, EPlayer>> iterator = ePlayers.entrySet().iterator();
-		while (iterator.hasNext()) {
-			iterator.next().getValue().Destroy(this);
-		}
+		SavePlayerData();
 	}
 	
 	@EventHandler
@@ -166,14 +159,14 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	public long getMoney(Player player) {
 		if (ePlayers.containsKey(player))
 			return ePlayers.get(player).getMoney();
-		return 0;
+		return -1;
 	}
 
 	@Override
 	public long getXp(Player player) {
 		if (ePlayers.containsKey(player))
 			return ePlayers.get(player).getXp();
-		return 0;
+		return -1;
 	}
 
 	@Override
@@ -207,10 +200,20 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 		        	return false;
 		        }
 		        
-		        player.sendMessage(i + "/" + amount + " " + shopItemNames.get(material) +
-		        		" bought! You have $" + eplayer.getMoney() + " left.");
+		        if (i > 0) {
+		        player.sendMessage(i + "/" + amount + " " + shopItemNames2.get(material) +
+		        		" bought for $" + i*shopItems.get(material) + ". You have $" + eplayer.getMoney() + " left.");
+		        }
+		        else {
+		        	player.sendMessage("You don't have enough money to buy " + shopItemNames2.get(material).toString() + ". " + 
+		        			shopItemNames2.get(material).toString() + " costs $" + shopItems.get(material).toString() + ".");
+		        }
 		        
 		        return (i > 0);
+			}
+			else
+			{
+				player.sendMessage("There is no such buyable item. Say '/buy help' to list items.");
 			}
 		}
 		return false;
@@ -226,7 +229,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 				
 		        if (material != null) {
 					for (i = 0; i < amount; i++) {
-						if (!eplayer.Buy((long)(int)xpShopItems.get(material), material))
+						if (!eplayer.XpBuy((long)(int)xpShopItems.get(material), material))
 							break;
 					}
 		        }
@@ -235,13 +238,72 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 		        	return false;
 		        }
 		        
-		        player.sendMessage(i + "/" + amount + " " + xpShopItemNames.get(material) +
-		        		" bought! You have $" + eplayer.getXp() + " left.");
+		        if (i > 0) {
+			        player.sendMessage(i + "/" + amount + " " + xpShopItemNames2.get(material).toString() +
+			        		" bought for $" + i*xpShopItems.get(material) + ". You have $" + eplayer.getXp() + " left.");
+		        }
+		        else {
+		        	player.sendMessage("You don't have enough money(XP) to buy " + xpShopItemNames2.get(material).toString() + ". " + 
+		        			xpShopItemNames2.get(material).toString() + " costs $" + xpShopItems.get(material).toString() + " XP.");
+		        }
 		        
 		        return (i > 0);
 			}
+			else
+			{
+				player.sendMessage("There is not such buyable item. Say '/xpbuy help' to list items.");
+			}
 		}
 		return false;
+	}
+	
+	public void SavePlayerData()
+	{
+		Iterator<Entry<Player, EPlayer>> iterator = ePlayers.entrySet().iterator();
+		
+		while (iterator.hasNext()) {
+			iterator.next().getValue().Destroy(this);
+		}
+			/*File file = new File(getDataFolder() + File.separator + "playerdata.yml");
+			
+			if (!file.exists()) {
+				try {
+					file.createNewFile();
+				}
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			try {
+				YamlConfiguration config = new YamlConfiguration();
+				
+				Iterator<Entry<Player, EPlayer>> iterator = ePlayers.entrySet().iterator();
+				
+				while (iterator.hasNext()) {
+					try {
+					EPlayer player = iterator.next().getValue();
+					
+					List<Integer> inventory = player.getInventoryData();
+					
+					config.set(player.getPlayer().getName() + ".xp", player.getXp());
+					config.set(player.getPlayer().getName() + ".inventory", inventory);
+					
+					}
+					catch (Exception e) {
+						 //TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
+				config.save(file);
+			}
+			catch (IOException e) {
+				 //TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
+			
 	}
 	
 	public boolean BuyShopItem(Player player, String material, int amount) {
