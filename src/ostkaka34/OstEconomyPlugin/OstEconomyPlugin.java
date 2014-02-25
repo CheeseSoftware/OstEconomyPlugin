@@ -14,7 +14,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listener
@@ -79,17 +78,6 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 		{
 			ePlayers.get(player).Save();
 			ePlayers.remove(player);
-		}
-	}
-
-	@EventHandler
-	public void onPlayerRespawnEvent(PlayerRespawnEvent event)
-	{
-		if (ePlayers.containsKey(event.getPlayer()))
-		{
-			EPlayer player = ePlayers.get(event.getPlayer());
-
-			player.Reset();
 		}
 	}
 

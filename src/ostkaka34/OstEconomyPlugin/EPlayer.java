@@ -64,6 +64,7 @@ public class EPlayer
 			config.load(configFile);
 			xp = config.getLong("xp");
 			List<Integer> inventory = config.getIntegerList("inventory");
+			xpInventory.clear();
 			Iterator<Integer> iterator = inventory.iterator();
 			while (iterator.hasNext())
 			{
