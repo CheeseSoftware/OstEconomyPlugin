@@ -46,7 +46,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	{
 		getServer().getPluginManager().registerEvents(this, this);
 		Player[] players = getServer().getOnlinePlayers();
-		File f = new File(this.getDataFolder() + File.separator + "playerdata" + File.separator);
+		File f = new File(this.getDataFolder() + File.separator + "playerdata");
 		if (!f.exists())
 			f.mkdir();
 

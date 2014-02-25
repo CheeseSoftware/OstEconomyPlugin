@@ -24,7 +24,6 @@ public class EPlayer
 	{
 		this.player = player;
 		configFile = new File(plugin.getDataFolder() + File.separator + "playerdata" + File.separator + player.getName() + ".yml");
-		
 		if (!configFile.exists())
 		{
 			try
@@ -98,6 +97,7 @@ public class EPlayer
 	@SuppressWarnings("deprecation")
 	public void Reset()
 	{
+		this.Load();
 		this.money = 1000;
 		player.getInventory().clear();
 		Iterator<Material> iterator = xpInventory.iterator();
