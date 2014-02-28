@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -20,15 +21,8 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 {
 
 	protected Map<Player, EPlayer> ePlayers = new HashMap<Player, EPlayer>();
-
-	protected Map<Material, Integer> shopItems = new HashMap<Material, Integer>();
-	protected Map<Material, Integer> xpShopItems = new HashMap<Material, Integer>();
-
-	protected Map<String, Material> shopItemNames = new HashMap<String, Material>();
-	protected Map<String, Material> xpShopItemNames = new HashMap<String, Material>();
-
-	protected Map<Material, String> shopItemNames2 = new HashMap<Material, String>();
-	protected Map<Material, String> xpShopItemNames2 = new HashMap<Material, String>();
+	protected Map<String, ShopItem> shopItems = new HashMap<String, ShopItem>();
+	protected ShopInventoryManager shopInventoryManager;
 
 	protected void LoadPlayer(Player player)
 	{
@@ -43,16 +37,16 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	@Override
 	public void onEnable()
 	{
-		getServer().getPluginManager().registerEvents(this, this);
+		this.shopInventoryManager = new ShopInventoryManager(this.shopItems);
 		Player[] players = getServer().getOnlinePlayers();
-		File f = new File(this.getDataFolder() + File.separator + "playerdata");
-		if (!f.exists())
-			f.mkdir();
+		File folder = new File(this.getDataFolder() + File.separator + "playerdata");
+		if (!folder.exists())
+			folder.mkdir();
 
 		for (int i = 0; i < players.length; i++)
-		{
 			LoadPlayer(players[i]);
-		}
+
+		getServer().getPluginManager().registerEvents(this, this);
 	}
 
 	@Override
@@ -65,7 +59,6 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	public void onPlayerJoin(PlayerJoinEvent event)
 	{
 		Player player = event.getPlayer();
-
 		LoadPlayer(player);
 	}
 
@@ -84,72 +77,18 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
-		if (ePlayers.containsKey(sender))
+		if (ePlayers.containsKey(sender) && sender instanceof Player)
 		{
-			EPlayer player = ePlayers.get(sender);
+			Player player = (Player) sender;
 
 			if (cmd.getName().equalsIgnoreCase("buy"))
 			{
-				if (args.length >= 1)
-				{
-					if (!args[0].equalsIgnoreCase("help"))
-					{
-						int amount = 1;
-
-						if (args.length >= 2)
-							Integer.getInteger(args[1], amount);
-
-						if (amount < 1)
-							amount = 1;
-
-						BuyShopItem(player.getPlayer(), args[0], amount);
-						return true;
-					}
-				}
-
-				String items = "";
-
-				Iterator<Entry<Material, Integer>> it = shopItems.entrySet().iterator();
-				while (it.hasNext())
-				{
-					Map.Entry<Material, Integer> pairs = (Map.Entry<Material, Integer>) it.next();
-					items += "\n" + shopItemNames2.get(pairs.getKey()) + " - $" + pairs.getValue().toString();
-				}
-
-				sender.sendMessage("Items: " + items);
-
+				shopInventoryManager.CreateShowMoneyShop(player);
 				return true;
 			}
 			else if (cmd.getName().equalsIgnoreCase("xpbuy"))
 			{
-				if (args.length >= 1)
-				{
-					if (!args[0].equalsIgnoreCase("help"))
-					{
-						int amount = 1;
-
-						if (args.length >= 2)
-							Integer.getInteger(args[1], amount);
-
-						if (amount < 1)
-							amount = 1;
-
-						BuyXPShopItem(player.getPlayer(), args[0], amount);
-						return true;
-					}
-				}
-
-				String items = "";
-
-				Iterator<Entry<Material, Integer>> it = xpShopItems.entrySet().iterator();
-				while (it.hasNext())
-				{
-					Map.Entry<Material, Integer> pairs = (Map.Entry<Material, Integer>) it.next();
-					items += "\n" + xpShopItemNames2.get(pairs.getKey()) + " - $" + pairs.getValue().toString();
-				}
-
-				sender.sendMessage("Items: " + items);
-
+				shopInventoryManager.CreateShowXpShop(player);
 				return true;
 			}
 		}
@@ -188,92 +127,46 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	}
 
 	@Override
-	public boolean BuyShopItem(Player player, Material material, int amount)
+	public boolean BuyShopItem(Player player, String name, int amount)
 	{
 		if (ePlayers.containsKey(player))
 		{
 			EPlayer eplayer = ePlayers.get(player);
 
-			if (shopItems.containsKey(material))
+			if (shopItems.containsKey(name))
 			{
-				int i = 0;
-
-				if (material != null)
+				ShopItem item = shopItems.get(name);
+				if (item.getXpCost() != 0)
 				{
+					int i = 0;
 					for (i = 0; i < amount; i++)
 					{
-						if (!eplayer.Buy((long) (int) shopItems.get(material), material))
+						if (!eplayer.XpBuy(item.getXpCost(), item.getMaterial()))
 							break;
 					}
+					if (i > 0)
+						player.sendMessage(i + "/" + amount + " " + item.getName() + " bought for $" + i * item.getXpCost() + ". You have $" + eplayer.getXp() + " left.");
+					else
+						player.sendMessage("Not enough money(XP). " + item.getName() + " costs $" + item.getXpCost() + " XP.");
+					return (i > 0);
 				}
 				else
 				{
-					player.sendMessage("There is no such buyable item. Say '/buy help' to list items.");
-					return false;
-				}
-
-				if (i > 0)
-				{
-					player.sendMessage(i + "/" + amount + " " + shopItemNames2.get(material) + " bought for $" + i * shopItems.get(material) + ". You have $" + eplayer.getMoney() + " left.");
-				}
-				else
-				{
-					player.sendMessage("You don't have enough money to buy " + shopItemNames2.get(material).toString() + ". " + shopItemNames2.get(material).toString() + " costs $"
-							+ shopItems.get(material).toString() + ".");
-				}
-
-				return (i > 0);
-			}
-			else
-			{
-				player.sendMessage("There is no such buyable item. Say '/buy help' to list items.");
-			}
-		}
-		return false;
-	}
-
-	@Override
-	public boolean BuyXPShopItem(Player player, Material material, int amount)
-	{
-		if (ePlayers.containsKey(player))
-		{
-			EPlayer eplayer = ePlayers.get(player);
-
-			if (xpShopItems.containsKey(material))
-			{
-				int i = 0;
-
-				if (material != null)
-				{
+					int i = 0;
 					for (i = 0; i < amount; i++)
 					{
-						if (!eplayer.XpBuy((long) (int) xpShopItems.get(material), material))
+						if (!eplayer.Buy(item.getMoneyCost(), item.getMaterial()))
 							break;
 					}
+					if (i > 0)
+						player.sendMessage(i + "/" + amount + " " + item.getName() + " bought for $" + i * item.getMoneyCost() + ". You have $" + eplayer.getMoney() + " left.");
+					else
+						player.sendMessage("Not enough money. " + item.getName() + " costs $" + item.getMoneyCost() + ".");
+					return (i > 0);
 				}
-				else
-				{
-					player.sendMessage("There is no such buyable item. Say '/xpbuy help' to list items.");
-					return false;
-				}
-
-				if (i > 0)
-				{
-					player.sendMessage(i + "/" + amount + " " + xpShopItemNames2.get(material).toString() + " bought for $" + i * xpShopItems.get(material) + ". You have $" + eplayer.getXp()
-							+ " left.");
-				}
-				else
-				{
-					player.sendMessage("You don't have enough money(XP) to buy " + xpShopItemNames2.get(material).toString() + ". " + xpShopItemNames2.get(material).toString() + " costs $"
-							+ xpShopItems.get(material).toString() + " XP.");
-				}
-
-				return (i > 0);
 			}
 			else
-			{
 				player.sendMessage("There is not such buyable item. Say '/xpbuy help' to list items.");
-			}
 		}
 		return false;
 	}
@@ -288,44 +181,28 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 		}
 	}
 
-	public boolean BuyShopItem(Player player, String material, int amount)
-	{
-		Material m;
-
-		if (shopItemNames.containsKey(material.toLowerCase()))
-			m = shopItemNames.get(material);
-		else
-			m = Material.AIR;
-
-		return BuyShopItem(player, m, amount);
-	}
-
-	public boolean BuyXPShopItem(Player player, String material, int amount)
-	{
-		Material m;
-
-		if (xpShopItemNames.containsKey(material.toLowerCase()))
-			m = xpShopItemNames.get(material);
-		else
-			m = Material.AIR;
-
-		return BuyXPShopItem(player, m, amount);
-	}
-
 	@Override
-	public void RegisterShopItem(Material material, long price, String name, boolean maxOne)
+	public void RegisterShopItem(String name, Material material, int moneyCost, int xpCost, boolean maxOne, int amount)
 	{
-		shopItems.put(material, (Integer) (int) price);
-		shopItemNames.put(name.toLowerCase(), material);
-		shopItemNames2.put(material, name.toLowerCase());
+		ShopItem item = new ShopItem(name, material, moneyCost, xpCost, maxOne);
+		item.setAmount(amount);
+		this.shopItems.put(name, item);
+		shopInventoryManager.setShopItems(this.shopItems);
+	}
+	
+	public String MaterialToName(Material material)
+	{
+		for(ShopItem item : shopItems.values())
+		{
+			if(item.getMaterial() == material)
+				return item.getName();
+		}
+		return null;
 	}
 
-	@Override
-	public void RegisterXPShopItem(Material material, long price, String name, boolean maxOne)
+	public static OstEconomyPlugin getPlugin()
 	{
-		xpShopItems.put(material, (Integer) (int) price);
-		xpShopItemNames.put(name.toLowerCase(), material);
-		xpShopItemNames2.put(material, name.toLowerCase());
+		return (OstEconomyPlugin) Bukkit.getPluginManager().getPlugin("OstEconomyPlugin");
 	}
 
 }

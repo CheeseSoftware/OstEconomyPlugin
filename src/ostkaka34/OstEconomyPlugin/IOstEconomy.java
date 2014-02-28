@@ -11,12 +11,9 @@ public interface IOstEconomy extends Plugin {
 	public void GiveMoney(Player player, long money);
 	public void ResetStats(Player player);
 	
-	public boolean BuyShopItem(Player player, Material material, int amount);
-	public boolean BuyXPShopItem(Player player, Material material, int amount);
+	public boolean BuyShopItem(Player player, String name, int amount);
+
+	public void RegisterShopItem(String name, Material material, int moneyCost, int xpCost, boolean maxOne, int amount);
 	
-	public boolean BuyShopItem(Player player, String material, int amount);
-	public boolean BuyXPShopItem(Player player, String material, int amount);
-	
-	public void RegisterShopItem(Material material, long price, String name, boolean maxOne);
-	public void RegisterXPShopItem(Material material, long price, String name, boolean maxOne);
+	public String MaterialToName(Material material);
 }
