@@ -103,9 +103,7 @@ public class EPlayer
 		player.getInventory().clear();
 		Iterator<Material> iterator = xpInventory.iterator();
 		while (iterator.hasNext())
-		{
 			player.getInventory().addItem(new ItemStack(iterator.next()));
-		}
 		
 		PutInInventory(Material.COOKED_BEEF, 16);
 		PutInInventory(Material.WOOD_SPADE, 1);
@@ -113,8 +111,8 @@ public class EPlayer
 		PutInInventory(Material.TORCH, 16);
 		PutInInventory(Material.WOOL, 16);
 		PutInInventory(Material.WEB, 4);
-		player.updateInventory();
 		this.Save();
+		player.updateInventory();
 	}
 
 	public boolean Buy(long money, Material item)
