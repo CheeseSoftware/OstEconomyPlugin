@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class ShopInventoryManager implements Listener
 {
@@ -77,11 +78,15 @@ public class ShopInventoryManager implements Listener
 				ItemStack itemStack = event.getCurrentItem();
 				if (itemStack != null)
 				{
-					String name = itemStack.getItemMeta().getDisplayName();
-					if (shop.getItems().containsKey(name))
+					ItemMeta meta = itemStack.getItemMeta();
+					if (meta != null)
 					{
-						ShopItem shopItem = shop.getItems().get(name);
-						OstEconomyPlugin.getPlugin().BuyShopItem(player, name, shopItem.getAmount());
+						String name = meta.getDisplayName();
+						if (name != null && shop.getItems().containsKey(name))
+						{
+							ShopItem shopItem = shop.getItems().get(name);
+							OstEconomyPlugin.getPlugin().BuyShopItem(player, name, shopItem.getAmount());
+						}
 					}
 					event.setCancelled(true);
 				}
