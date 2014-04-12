@@ -82,9 +82,9 @@ public class ShopInventoryManager implements Listener
 					if (meta != null)
 					{
 						String name = meta.getDisplayName();
-						if (name != null && shop.getItems().containsKey(name))
+						ShopItem shopItem = shop.getItems().get(name);
+						if (shopItem != null)
 						{
-							ShopItem shopItem = shop.getItems().get(name);
 							OstEconomyPlugin.getPlugin().BuyShopItem(player, name, shopItem.getAmount());
 						}
 					}
