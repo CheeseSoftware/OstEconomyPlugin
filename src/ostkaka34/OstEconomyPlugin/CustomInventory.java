@@ -18,7 +18,7 @@ public class CustomInventory
 		if(this.size < 9)
 			this.size = 9;
 		else
-			this.size = (int)(Math.ceil(this.size/9)*9);
+			this.size = size - size%9 + 9;//(int)(Math.ceil(this.size/9)*9);
 		this.inventory = Bukkit.createInventory(player, this.size, title);
 		this.inventory.clear();
 		player.updateInventory();

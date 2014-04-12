@@ -77,9 +77,9 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
-		if (ePlayers.containsKey(sender) && sender instanceof Player)
+		if (ePlayers.containsKey(sender) && ePlayers.containsKey(sender))
 		{
-			Player player = (Player) sender;
+			EPlayer player = ePlayers.get(sender);
 
 			if (cmd.getName().equalsIgnoreCase("buy"))
 			{

@@ -101,16 +101,25 @@ public class EPlayer
 		this.Load();
 		this.money = 1000;
 		player.getInventory().clear();
+		
+
+		
+		PutInInventory(Material.TORCH, 16);
+		PutInInventory(Material.LADDER, 16);
+		PutInInventory(Material.WOOD, 8);
+		PutInInventory(Material.WEB, 16);
+		PutInInventory(Material.WOOL, 16);
+
+		
 		Iterator<Material> iterator = xpInventory.iterator();
+		
 		while (iterator.hasNext())
 			player.getInventory().addItem(new ItemStack(iterator.next()));
 		
+		PutInInventory(Material.STONE_SPADE, 1);
 		PutInInventory(Material.COOKED_BEEF, 16);
-		PutInInventory(Material.WOOD_SPADE, 1);
 		PutInInventory(Material.STICK, 16);
-		PutInInventory(Material.TORCH, 16);
-		PutInInventory(Material.WOOL, 16);
-		PutInInventory(Material.WEB, 4);
+
 		this.Save();
 		player.updateInventory();
 	}

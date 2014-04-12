@@ -37,18 +37,18 @@ public class ShopInventoryManager implements Listener
 		}
 	}
 
-	public void CreateShowMoneyShop(Player player)
+	public void CreateShowMoneyShop(EPlayer player)
 	{
-		ShopInventory shop = new ShopInventory(player, "Money Shop", moneyShopItems);
-		shopInventories.put(player, shop);
+		ShopInventory shop = new ShopInventory(player.getPlayer(), "Money Shop - You have $" + player.getMoney() + ".", moneyShopItems);
+		shopInventories.put(player.getPlayer(), shop);
 		shop.Show();
 	}
 
-	public void CreateShowXpShop(Player player)
+	public void CreateShowXpShop(EPlayer player)
 	{
-		ShopInventory shop = new ShopInventory(player, "XP Shop", xpShopItems);
+		ShopInventory shop = new ShopInventory(player.getPlayer(), "XP Shop - You have $" + player.getXp() + " XP.", xpShopItems);
 		// CustomInventory shop = new CustomInventory(player, 27, "LOL");
-		shopInventories.put(player, shop);
+		shopInventories.put(player.getPlayer(), shop);
 		shop.Show();
 	}
 
