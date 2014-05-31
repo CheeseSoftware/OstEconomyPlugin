@@ -138,11 +138,11 @@ public class EPlayer
 		return false;
 	}
 
-	public boolean XpBuy(long xp, Material item)
+	public boolean XpBuy(long xp, Material item, boolean maxOne)
 	{
 		if (this.xp > xp)
 		{
-			if (!xpInventory.contains(item))
+			if (!xpInventory.contains(item) || !maxOne)
 			{
 				if (PutInInventory(item, 1))
 				{
@@ -194,4 +194,6 @@ public class EPlayer
 
 		return inventory;
 	}
+
+
 }

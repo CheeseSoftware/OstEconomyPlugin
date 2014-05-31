@@ -5,6 +5,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
+
+import net.milkbowl.vault.chat.Chat;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
+import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -15,15 +21,33 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listener
 {
-
+	protected class Pair<A, B>
+	{
+		public A first;
+		public B second;
+		
+		public Pair(A first, B second)
+		{
+			this.first = first;
+			this.second = second;
+		}
+	}
+	
+	protected Economy econ = null;
+	protected Map<Player, Pair<String, Double>> transfers = new HashMap<Player, Pair<String, Double>>();
+	
 	protected Map<Player, EPlayer> ePlayers = new HashMap<Player, EPlayer>();
 	protected Map<String, ShopItem> shopItems = new HashMap<String, ShopItem>();
 	protected ShopInventoryManager shopInventoryManager;
+	protected Random random = new Random();
 
+	protected final double xpAmount = 1000;
+	
 	protected void LoadPlayer(Player player)
 	{
 		if (ePlayers.containsKey(player))
@@ -33,6 +57,18 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 		}
 		ePlayers.put(player, new EPlayer(player, this));
 	}
+	
+	private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return econ != null;
+    }
 
 	@Override
 	public void onEnable()
@@ -45,6 +81,8 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 
 		for (int i = 0; i < players.length; i++)
 			LoadPlayer(players[i]);
+		
+		setupEconomy();
 
 		getServer().getPluginManager().registerEvents(this, this);
 	}
@@ -77,6 +115,10 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
+        if(!(sender instanceof Player)) {
+            return true;
+        }
+		
 		if (ePlayers.containsKey(sender) && ePlayers.containsKey(sender))
 		{
 			EPlayer player = ePlayers.get(sender);
@@ -88,9 +130,109 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 			}
 			else if (cmd.getName().equalsIgnoreCase("xpbuy"))
 			{
+				sender.sendMessage("Say /buyxp to buy xp with 'real money' or kill zombies to get xp.");
 				shopInventoryManager.CreateShowXpShop(player);
 				return true;
 			}
+			else if (cmd.getName().equalsIgnoreCase("buyxp"))
+			{
+				if (econ == null)
+				{
+					sender.sendMessage("Could not find an economy plugin. Try again later.");
+					return true;
+				}
+					
+				if (args.length >= 1)
+				{
+					double amountOfReal = 0.0;
+					
+					amountOfReal = Double.parseDouble(args[0]);
+					
+					if (amountOfReal <= 0.0)
+						return false;
+					
+					String key = "";
+					for (int i = 0; i < 4; i++)
+						key += String.valueOf(random.nextInt(10));
+					
+					if (transfers.containsKey(sender))
+						transfers.remove(sender);
+					
+					transfers.put((Player)sender , new Pair<String, Double>(key, (Double)amountOfReal));
+					
+					sender.sendMessage("Are you use you want to buy " + String.valueOf(amountOfReal*xpAmount) + " xp for $" + String.valueOf(amountOfReal) + " ?");
+					sender.sendMessage("say '/acceptbuyxp " + key + "' to accept transef. Say '/denybuyxp' to deny.");
+					
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else if (cmd.getName().equalsIgnoreCase("acceptbuyxp"))
+			{
+				if (econ == null)
+				{
+					sender.sendMessage("Could not find an economy plugin. Try again later.");
+					return true;
+				}
+				
+				if (args.length >= 1)
+				{
+					if (transfers.containsKey(sender))
+					{
+						Pair<String, Double> pair = transfers.get(sender);
+						if (pair.first == args[0])
+						{
+							double amountOfReal = pair.second;
+							
+							if (amountOfReal <= 0)
+								return false;
+							
+				            EconomyResponse r = econ.depositPlayer((Player)sender, -amountOfReal);
+				            
+				            if(r.transactionSuccess())
+				            {
+				            	player.GiveMoney((long)(r.amount * xpAmount));
+				                sender.sendMessage(String.format("You bought %s xp for %s and now have %s and %s xp.",
+				                		r.amount*xpAmount, 
+				                		econ.format(r.amount), 
+				                		econ.format(r.balance), 
+				                		player.xp));
+				            }
+				            else
+				            {
+				                sender.sendMessage(String.format("An error occured: %s", r.errorMessage));
+				            }
+							
+							
+							return true;
+						}
+						else
+						{
+							sender.sendMessage("Wrong code! Say /buyxp again if you forgot the code.");
+							return true;
+						}
+					}
+				}
+			}
+			else if (cmd.getName().equalsIgnoreCase("denybuyxp"))
+			{
+				if (econ == null)
+				{
+					sender.sendMessage("Could not find an economy plugin. Try again later.");
+					return true;
+				}
+				
+				if (transfers.containsKey(sender))
+				{
+					transfers.remove(sender);
+					return true;
+				}
+				return false;
+			}
+			
 		}
 
 		return false;
@@ -141,7 +283,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 					int i = 0;
 					for (i = 0; i < amount; i++)
 					{
-						if (!eplayer.XpBuy(item.getXpCost(), item.getMaterial()))
+						if (!eplayer.XpBuy(item.getXpCost(), item.getMaterial(), item.maxOne))
 							break;
 					}
 					if (i > 0)
