@@ -7,10 +7,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
-import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
-import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -161,7 +159,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 					transfers.put((Player)sender , new Pair<String, Double>(key, (Double)amountOfReal));
 					
 					sender.sendMessage("Are you use you want to buy " + String.valueOf(amountOfReal*xpAmount) + " xp for $" + String.valueOf(amountOfReal) + " ?");
-					sender.sendMessage("say '/acceptbuyxp " + key + "' to accept transef. Say '/denybuyxp' to deny.");
+					sender.sendMessage("say '/acceptbuyxp " + key + "' to accept transfer. Say '/denybuyxp' to deny.");
 					
 					return true;
 				}
