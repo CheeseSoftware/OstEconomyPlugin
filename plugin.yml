@@ -3,10 +3,18 @@ main: ostkaka34.OstEconomyPlugin.OstEconomyPlugin
 version: 0
 commands:
    buy:
-      description: Let you buy items.
+      description: Lets you buy items.
       usage: /buy <item> [amount]
       permission: osteconomy.buy
    xpbuy:
-      description: Let you buy items.
+      description: Lets you buy xp items.
       usage: /xpbuy <item> [amount]
       permission: osteconomy.xpbuy
+   buyxp:
+      description: Lets you buy xp with money.
+      usage: /buyxp <amount>
+      permission: osteconomy.buyxp
+   acceptbuyxp:
+      description: Lets you buy xp with money.
+      usage: /acceptbuyxp <code>
+      permission: osteconomy.acceptbuyxp
