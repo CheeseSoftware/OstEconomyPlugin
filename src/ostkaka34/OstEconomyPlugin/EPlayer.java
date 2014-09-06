@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -99,25 +100,24 @@ public class EPlayer
 	public void Reset()
 	{
 		this.Load();
-		this.money = 1000;
+		this.money = 0;
 		player.getInventory().clear();
 		
-
-		
+		PutInInventory(Material.COOKED_BEEF, 16);
 		PutInInventory(Material.TORCH, 16);
 		PutInInventory(Material.LADDER, 16);
 		PutInInventory(Material.WOOD, 8);
-		PutInInventory(Material.WEB, 16);
+		PutInInventory(Material.WEB, 8);
 		PutInInventory(Material.WOOL, 16);
 
 		
-		Iterator<Material> iterator = xpInventory.iterator();
+		ListIterator<Material> iterator = xpInventory.listIterator(xpInventory.size());
 		
-		while (iterator.hasNext())
-			player.getInventory().addItem(new ItemStack(iterator.next()));
+		while (iterator.hasPrevious())
+			player.getInventory().addItem(new ItemStack(iterator.previous()));
 		
 		PutInInventory(Material.STONE_SPADE, 1);
-		PutInInventory(Material.COOKED_BEEF, 16);
+		
 		PutInInventory(Material.STICK, 16);
 
 		this.Save();
