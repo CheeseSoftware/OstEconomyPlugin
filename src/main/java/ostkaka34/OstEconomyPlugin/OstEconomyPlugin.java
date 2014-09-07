@@ -188,7 +188,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 							if (amountOfReal <= 0)
 								return false;
 							
-				            EconomyResponse r = econ.depositPlayer((Player)sender, -amountOfReal);
+				            EconomyResponse r = econ.depositPlayer(((Player)sender).getName(), -amountOfReal);
 				            
 				            if(r.transactionSuccess())
 				            {
