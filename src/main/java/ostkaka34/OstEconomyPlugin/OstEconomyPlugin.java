@@ -324,7 +324,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	@Override
 	public void RegisterShopItem(String name, Material material, int moneyCost, int xpCost, boolean maxOne, int amount)
 	{
-		ShopItem item = new ShopItem(name, material, moneyCost, xpCost, maxOne);
+		ShopItem item = new ShopItem(name, material, moneyCost, xpCost, maxOne, amount);
 		item.setAmount(amount);
 		this.shopItems.put(name, item);
 		shopInventoryManager.setShopItems(this.shopItems);

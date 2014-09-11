@@ -9,15 +9,16 @@ public class ShopItem
 	protected int moneyCost;
 	protected int xpCost;
 	protected boolean maxOne;
-	protected int amount = 1;
+	protected int amount;
 	
-	public ShopItem(String name, Material material, int moneyCost, int xpCost, boolean maxOne)
+	public ShopItem(String name, Material material, int moneyCost, int xpCost, boolean maxOne, int amount)
 	{
 		this.name = name;
 		this.material = material;
 		this.moneyCost = moneyCost;
 		this.xpCost = xpCost;
 		this.maxOne = maxOne;
+		this.amount = amount;
 	}
 	
 	public Material getMaterial()
