@@ -266,6 +266,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 			ePlayers.get(player).Reset();
 	}
 
+
 	@Override
 	public boolean BuyShopItem(Player player, String name, int amount)
 	{
@@ -281,7 +282,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 					int i = 0;
 					for (i = 0; i < amount; i++)
 					{
-						if (!eplayer.XpBuy(item.getXpCost(), item.getMaterial(), item.maxOne))
+						if (!eplayer.XpBuy(item.getXpCost(), item.getMaterial(), item.maxOne, item.getAmount()))
 							break;
 					}
 					if (i > 0)
@@ -295,7 +296,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 					int i = 0;
 					for (i = 0; i < amount; i++)
 					{
-						if (!eplayer.Buy(item.getMoneyCost(), item.getMaterial()))
+						if (!eplayer.Buy(item.getMoneyCost(), item.getMaterial(), item.getAmount()))
 							break;
 					}
 					if (i > 0)

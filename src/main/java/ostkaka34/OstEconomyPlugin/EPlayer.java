@@ -124,11 +124,11 @@ public class EPlayer
 		player.updateInventory();
 	}
 
-	public boolean Buy(long money, Material item)
+	public boolean Buy(long money, Material item, int amount)
 	{
 		if (this.money > money)
 		{
-			if (PutInInventory(item, 1))
+			if (PutInInventory(item, amount))
 			{
 				this.money -= money;
 				this.Save();
@@ -138,16 +138,18 @@ public class EPlayer
 		return false;
 	}
 
-	public boolean XpBuy(long xp, Material item, boolean maxOne)
+	public boolean XpBuy(long xp, Material item, boolean maxOne, int amount)
 	{
 		if (this.xp > xp)
 		{
-			if (!xpInventory.contains(item) || !maxOne)
+			if ((!xpInventory.contains(item) && amount == 1) || !maxOne)
 			{
-				if (PutInInventory(item, 1))
+				if (PutInInventory(item, amount))
 				{
 					this.xp -= xp;
-					xpInventory.add(item);
+					for (int i = 0; i < amount; i++)
+						xpInventory.add(item);
+					
 					this.Save();
 					return true;
 				}

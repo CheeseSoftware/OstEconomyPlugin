@@ -85,8 +85,7 @@ public class ShopInventoryManager implements Listener
 						ShopItem shopItem = shop.getItems().get(name);
 						if (shopItem != null)
 						{
-							for (int i = 0; i < shopItem.getAmount(); i++)
-								OstEconomyPlugin.getPlugin().BuyShopItem(player, name, 1);
+							OstEconomyPlugin.getPlugin().BuyShopItem(player, name, 1);
 						}
 					}
 					event.setCancelled(true);
