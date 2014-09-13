@@ -10,15 +10,15 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class ShopInventory extends CustomInventory
 {
-	Map<String, ShopItem> shopItems;
+	Map<String, IShopItem> shopItems;
 
-	public ShopInventory(Player player, String title, Map<String, ShopItem> shopItems)
+	public ShopInventory(Player player, String title, Map<String, IShopItem> shopItems)
 	{
 		super(player, shopItems.size(), title);
 		this.shopItems = shopItems;
-		for(ShopItem item : shopItems.values())
+		for(IShopItem item : shopItems.values())
 		{
-			ItemStack itemStack = new ItemStack(item.getMaterial());
+			ItemStack itemStack = new ItemStack(item.getVisibleShopMaterial());
 			itemStack.setAmount(item.getAmount());
 			
 			ItemMeta itemMeta = itemStack.getItemMeta();
@@ -40,7 +40,7 @@ public class ShopInventory extends CustomInventory
 		}
 	}
 
-	public Map<String, ShopItem> getItems()
+	public Map<String, IShopItem> getItems()
 	{
 		return this.shopItems;
 	}

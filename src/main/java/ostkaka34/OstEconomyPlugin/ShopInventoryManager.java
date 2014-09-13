@@ -15,20 +15,20 @@ import org.bukkit.inventory.meta.ItemMeta;
 public class ShopInventoryManager implements Listener
 {
 	Map<Player, ShopInventory> shopInventories = new HashMap<Player, ShopInventory>();
-	Map<String, ShopItem> shopItems = new HashMap<String, ShopItem>();
-	Map<String, ShopItem> moneyShopItems = new HashMap<String, ShopItem>();
-	Map<String, ShopItem> xpShopItems = new HashMap<String, ShopItem>();
+	Map<String, IShopItem> shopItems = new HashMap<String, IShopItem>();
+	Map<String, IShopItem> moneyShopItems = new HashMap<String, IShopItem>();
+	Map<String, IShopItem> xpShopItems = new HashMap<String, IShopItem>();
 
-	public ShopInventoryManager(Map<String, ShopItem> shopItems)
+	public ShopInventoryManager(Map<String, IShopItem> shopItems)
 	{
 		this.setShopItems(shopItems);
 		Bukkit.getPluginManager().registerEvents(this, OstEconomyPlugin.getPlugin());
 	}
 
-	public void setShopItems(Map<String, ShopItem> shopItems)
+	public void setShopItems(Map<String, IShopItem> shopItems)
 	{
 		this.shopItems = shopItems;
-		for (ShopItem item : shopItems.values())
+		for (IShopItem item : shopItems.values())
 		{
 			if (item.getMoneyCost() != 0)
 				this.moneyShopItems.put(item.getName(), item);
@@ -82,7 +82,7 @@ public class ShopInventoryManager implements Listener
 					if (meta != null)
 					{
 						String name = meta.getDisplayName();
-						ShopItem shopItem = shop.getItems().get(name);
+						IShopItem shopItem = shop.getItems().get(name);
 						if (shopItem != null)
 						{
 							OstEconomyPlugin.getPlugin().BuyShopItem(player, name, 1);

@@ -40,7 +40,7 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	protected Map<Player, Pair<String, Double>> transfers = new HashMap<Player, Pair<String, Double>>();
 	
 	protected Map<Player, EPlayer> ePlayers = new HashMap<Player, EPlayer>();
-	protected Map<String, ShopItem> shopItems = new HashMap<String, ShopItem>();
+	protected Map<String, IShopItem> shopItems = new HashMap<String, IShopItem>();
 	protected ShopInventoryManager shopInventoryManager;
 	protected Random random = new Random();
 
@@ -188,7 +188,8 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 							if (amountOfReal <= 0)
 								return false;
 							
-				            EconomyResponse r = econ.depositPlayer(((Player)sender).getName(), -amountOfReal);
+				            @SuppressWarnings("deprecation")
+							EconomyResponse r = econ.depositPlayer(((Player)sender).getName(), -amountOfReal);
 				            
 				            if(r.transactionSuccess())
 				            {
@@ -263,26 +264,26 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	public void ResetStats(Player player)
 	{
 		if (ePlayers.containsKey(player))
-			ePlayers.get(player).Reset();
+			ePlayers.get(player).Reset(this);
 	}
 
 
 	@Override
-	public boolean BuyShopItem(Player player, String name, int amount)
-	{
+	public boolean BuyShopItem(Player player, IShopItem shopItem, int amount) {
+		// TODO Auto-generated method stub
 		if (ePlayers.containsKey(player))
 		{
 			EPlayer eplayer = ePlayers.get(player);
 
-			if (shopItems.containsKey(name))
+			if (shopItems.containsKey(shopItem.getName()))
 			{
-				ShopItem item = shopItems.get(name);
+				IShopItem item = shopItems.get(shopItem.getName());
 				if (item.getXpCost() != 0)
 				{
-					int i = 0;
+					int i;
 					for (i = 0; i < amount; i++)
 					{
-						if (!eplayer.XpBuy(item.getXpCost(), item.getMaterial(), item.maxOne, item.getAmount()))
+						if (!eplayer.XpBuy(item))
 							break;
 					}
 					if (i > 0)
@@ -293,10 +294,55 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 				}
 				else
 				{
-					int i = 0;
+					int i;
 					for (i = 0; i < amount; i++)
 					{
-						if (!eplayer.Buy(item.getMoneyCost(), item.getMaterial(), item.getAmount()))
+						if (!eplayer.Buy(item))
+							break;
+					}
+					if (i > 0)
+						player.sendMessage(i + "/" + amount + " " + item.getName() + " bought for $" + i * item.getMoneyCost() + ". You have $" + eplayer.getMoney() + " left.");
+					else
+						player.sendMessage("Not enough money. " + item.getName() + " costs $" + item.getMoneyCost() + ".");
+					return (i > 0);
+				}
+			}
+			else
+				player.sendMessage("ERROR: Unregistered item!");
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean BuyShopItem(Player player, String name, int amount)
+	{
+		if (ePlayers.containsKey(player))
+		{
+			EPlayer eplayer = ePlayers.get(player);
+
+			if (shopItems.containsKey(name))
+			{
+				IShopItem item = shopItems.get(name);
+				if (item.getXpCost() != 0)
+				{
+					int i;
+					for (i = 0; i < amount; i++)
+					{
+						if (!eplayer.XpBuy(item))
+							break;
+					}
+					if (i > 0)
+						player.sendMessage(i + "/" + amount + " " + item.getName() + " bought for $" + i * item.getXpCost() + ". You have $" + eplayer.getXp() + " left.");
+					else
+						player.sendMessage("Not enough money(XP). " + item.getName() + " costs $" + item.getXpCost() + " XP.");
+					return (i > 0);
+				}
+				else
+				{
+					int i;
+					for (i = 0; i < amount; i++)
+					{
+						if (!eplayer.Buy(item))
 							break;
 					}
 					if (i > 0)
@@ -323,27 +369,61 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	}
 
 	@Override
+	public void RegisterShopItem(IShopItem shopItem) {
+		this.shopItems.put(shopItem.getName(), shopItem);
+		shopInventoryManager.setShopItems(this.shopItems);
+	}
+	
+	@Override
+	@Deprecated
 	public void RegisterShopItem(String name, Material material, int moneyCost, int xpCost, boolean maxOne, int amount)
 	{
 		ShopItem item = new ShopItem(name, material, moneyCost, xpCost, maxOne, amount);
-		item.setAmount(amount);
 		this.shopItems.put(name, item);
 		shopInventoryManager.setShopItems(this.shopItems);
 	}
 	
-	public String MaterialToName(Material material)
-	{
-		for(ShopItem item : shopItems.values())
-		{
-			if(item.getMaterial() == material)
-				return item.getName();
-		}
-		return null;
-	}
+	//public String MaterialToName(Material material)
+	//{
+	//	for(IShopItem item : shopItems.values())
+	//	{
+	//		if(item.getMaterial() == material)
+	//			return item.getName();
+	//	}
+	//	return null;
+	//}
 
 	public static OstEconomyPlugin getPlugin()
 	{
 		return (OstEconomyPlugin) Bukkit.getPluginManager().getPlugin("OstEconomyPlugin");
 	}
 
+	
+	public IShopItem getShopItem(String name)
+	{
+		IShopItem item = shopItems.get(name);
+		
+		if (item == null)
+		{
+			return new ShopItem(name, Material.PAPER, 0, 0, false, 0);
+		}
+		else return item;
+	}
+
+
+
+	@Override
+	@Deprecated
+	public String MaterialToName(Material material) {
+		Iterator<Entry<String, IShopItem>> iterator = shopItems.entrySet().iterator();
+		
+		while (iterator.hasNext()) {
+			
+			if (iterator.next().getValue().getVisibleShopMaterial() == material)
+				return iterator.next().getKey();
+		}
+		
+		return null;
+	}
+	
 }

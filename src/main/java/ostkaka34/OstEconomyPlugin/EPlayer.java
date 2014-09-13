@@ -18,7 +18,7 @@ public class EPlayer
 	protected Player player;
 	protected long money = 1000;
 	protected long xp = 0;
-	protected List<Material> xpInventory = new ArrayList<Material>();
+	protected List<IShopItem> xpInventory = new ArrayList<IShopItem>();
 	protected File configFile;
 
 	public EPlayer(Player player, OstEconomyPlugin plugin)
@@ -37,7 +37,7 @@ public class EPlayer
 			}
 			this.SaveConfig();
 		}
-		this.Load();
+		this.Load(plugin);
 	}
 	
 	protected void SaveConfig()
@@ -45,7 +45,8 @@ public class EPlayer
 		YamlConfiguration config = new YamlConfiguration();
 		try
 		{
-			List<Integer> inventory = getInventoryData();
+			List<String> inventory = getInventoryData();
+			
 			config.set("xp", getXp());
 			config.set("inventory", inventory);
 			config.save(configFile);
@@ -56,20 +57,24 @@ public class EPlayer
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	protected void LoadConfig()
+	protected void LoadConfig(OstEconomyPlugin plugin)
 	{
 		YamlConfiguration config = new YamlConfiguration();
 		try
 		{
+			List<String> inventory;
+			
 			config.load(configFile);
 			xp = config.getLong("xp");
-			List<Integer> inventory = config.getIntegerList("inventory");
+			
+			inventory = config.getStringList("inventory");
+			
 			xpInventory.clear();
-			Iterator<Integer> iterator = inventory.iterator();
+			Iterator<String> iterator = inventory.iterator();
 			while (iterator.hasNext())
 			{
-				xpInventory.add(Material.getMaterial(iterator.next()));
+				IShopItem shopItem = plugin.getShopItem(iterator.next());
+				xpInventory.add(shopItem);
 			}
 		}
 		catch (IOException | InvalidConfigurationException e)
@@ -83,9 +88,9 @@ public class EPlayer
 		this.SaveConfig();
 	}
 	
-	public void Load()
+	public void Load(OstEconomyPlugin plugin)
 	{
-		this.LoadConfig();
+		this.LoadConfig(plugin);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -97,9 +102,9 @@ public class EPlayer
 	}
 
 	@SuppressWarnings("deprecation")
-	public void Reset()
+	public void Reset(OstEconomyPlugin plugin)
 	{
-		this.Load();
+		this.Load(plugin);
 		this.money = 0;
 		player.getInventory().clear();
 		
@@ -111,26 +116,26 @@ public class EPlayer
 		PutInInventory(Material.WOOL, 16);
 
 		
-		ListIterator<Material> iterator = xpInventory.listIterator(xpInventory.size());
+		ListIterator<IShopItem> iterator = xpInventory.listIterator(xpInventory.size());
 		
 		while (iterator.hasPrevious())
-			player.getInventory().addItem(new ItemStack(iterator.previous()));
+			iterator.previous().RecoverBoughtItem(this.getPlayer());
+			//player.getInventory().addItem(new ItemStack(iterator.previous()));
 		
 		PutInInventory(Material.STONE_SPADE, 1);
-		
 		PutInInventory(Material.STICK, 16);
 
 		this.Save();
 		player.updateInventory();
 	}
 
-	public boolean Buy(long money, Material item, int amount)
+	public boolean Buy(IShopItem shopItem)
 	{
-		if (this.money > money)
+		if (this.money > shopItem.getMoneyCost())
 		{
-			if (PutInInventory(item, amount))
+			if (shopItem.OnBuyItem(this.getPlayer()))//(PutInInventory(shopItem, amount))
 			{
-				this.money -= money;
+				this.money -= shopItem.getMoneyCost();
 				this.Save();
 				return true;
 			}
@@ -138,17 +143,16 @@ public class EPlayer
 		return false;
 	}
 
-	public boolean XpBuy(long xp, Material item, boolean maxOne, int amount)
+	public boolean XpBuy(IShopItem shopItem)
 	{
-		if (this.xp > xp)
+		if (this.xp > shopItem.getXpCost())
 		{
-			if ((!xpInventory.contains(item) && amount == 1) || !maxOne)
+			if ((!xpInventory.contains(shopItem) && shopItem.getAmount() == 1) || !shopItem.getMaxOne())
 			{
-				if (PutInInventory(item, amount))
+				if (shopItem.OnBuyItem(this.getPlayer()))
 				{
-					this.xp -= xp;
-					for (int i = 0; i < amount; i++)
-						xpInventory.add(item);
+					this.xp -= shopItem.getXpCost();
+						xpInventory.add(shopItem);
 					
 					this.Save();
 					return true;
@@ -185,14 +189,13 @@ public class EPlayer
 		return player;
 	}
 
-	@SuppressWarnings("deprecation")
-	public List<Integer> getInventoryData()
+	public List<String> getInventoryData()
 	{
-		List<Integer> inventory = new ArrayList<Integer>();
+		List<String> inventory = new ArrayList<String>();
 
-		Iterator<Material> iterator = xpInventory.iterator();
+		Iterator<IShopItem> iterator = xpInventory.iterator();
 		while (iterator.hasNext())
-			inventory.add(iterator.next().getId());
+			inventory.add(iterator.next().getName());
 
 		return inventory;
 	}
