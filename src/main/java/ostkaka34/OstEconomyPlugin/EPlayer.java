@@ -24,7 +24,7 @@ public class EPlayer
 	public EPlayer(Player player, OstEconomyPlugin plugin)
 	{
 		this.player = player;
-		configFile = new File(plugin.getDataFolder() + File.separator + "playerdata" + File.separator + player.getName() + ".yml");
+		configFile = new File("../playerdata/" + player.getName() + ".yml");
 		if (!configFile.exists())
 		{
 			try
