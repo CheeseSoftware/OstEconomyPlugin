@@ -75,8 +75,6 @@ public class ShopItem implements IShopItem
 		return this.maxOne;
 	}
 	
-	
-	@SuppressWarnings("deprecation")
 	protected boolean PutInInventory(Player player)
 	{
 		boolean canPut = player.getInventory().contains(Material.AIR);

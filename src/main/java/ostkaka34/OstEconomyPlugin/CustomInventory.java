@@ -10,7 +10,6 @@ public class CustomInventory
 	protected int size;
 	protected String title;
 	
-	@SuppressWarnings("deprecation")
 	public CustomInventory(Player player, int size, String title)
 	{
 		this.size = size;

@@ -1,6 +1,7 @@
 package ostkaka34.OstEconomyPlugin;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -72,13 +73,13 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	public void onEnable()
 	{
 		this.shopInventoryManager = new ShopInventoryManager(this.shopItems);
-		Player[] players = getServer().getOnlinePlayers();
+		Collection<? extends Player> players = getServer().getOnlinePlayers();
 		File folder = new File(this.getDataFolder() + File.separator + "playerdata");
 		if (!folder.exists())
 			folder.mkdir();
 
-		for (int i = 0; i < players.length; i++)
-			LoadPlayer(players[i]);
+		for (Player p : players)
+			LoadPlayer(p);
 		
 		setupEconomy();
 
@@ -270,7 +271,6 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 
 	@Override
 	public boolean BuyShopItem(Player player, IShopItem shopItem, int amount) {
-		// TODO Auto-generated method stub
 		if (ePlayers.containsKey(player))
 		{
 			EPlayer eplayer = ePlayers.get(player);

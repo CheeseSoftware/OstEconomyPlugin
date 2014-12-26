@@ -93,7 +93,6 @@ public class EPlayer
 		this.LoadConfig(plugin);
 	}
 
-	@SuppressWarnings("deprecation")
 	protected boolean PutInInventory(Material item, int amount)
 	{
 		player.getInventory().addItem(new ItemStack(item, amount));
@@ -101,7 +100,6 @@ public class EPlayer
 		return true;
 	}
 
-	@SuppressWarnings("deprecation")
 	public void Reset(OstEconomyPlugin plugin)
 	{
 		this.Load(plugin);
