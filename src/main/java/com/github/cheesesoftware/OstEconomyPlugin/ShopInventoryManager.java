@@ -1,4 +1,4 @@
-package ostkaka34.OstEconomyPlugin;
+package com.github.cheesesoftware.OstEconomyPlugin;
 
 import java.util.HashMap;
 import java.util.Map;

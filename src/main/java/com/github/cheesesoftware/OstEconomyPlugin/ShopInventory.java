@@ -1,4 +1,4 @@
-package ostkaka34.OstEconomyPlugin;
+package com.github.cheesesoftware.OstEconomyPlugin;
 
 import java.util.ArrayList;
 import java.util.List;

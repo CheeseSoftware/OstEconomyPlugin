@@ -1,4 +1,4 @@
-package ostkaka34.OstEconomyPlugin;
+package com.github.cheesesoftware.OstEconomyPlugin;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
