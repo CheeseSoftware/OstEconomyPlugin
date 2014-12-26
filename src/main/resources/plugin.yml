@@ -1,5 +1,5 @@
 name: OstEconomyPlugin
-main: ostkaka34.OstEconomyPlugin.OstEconomyPlugin
+main: com.github.cheesesoftware.OstEconomyPlugin.OstEconomyPlugin
 version: 0
 commands:
    buy:
