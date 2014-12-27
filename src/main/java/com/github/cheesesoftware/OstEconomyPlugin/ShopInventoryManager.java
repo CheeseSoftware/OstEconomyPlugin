@@ -12,85 +12,70 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-public class ShopInventoryManager implements Listener
-{
-	Map<Player, ShopInventory> shopInventories = new HashMap<Player, ShopInventory>();
-	Map<String, IShopItem> shopItems = new HashMap<String, IShopItem>();
-	Map<String, IShopItem> moneyShopItems = new HashMap<String, IShopItem>();
-	Map<String, IShopItem> xpShopItems = new HashMap<String, IShopItem>();
+public class ShopInventoryManager implements Listener {
+    Map<Player, ShopInventory> shopInventories = new HashMap<Player, ShopInventory>();
+    Map<String, IShopItem> shopItems = new HashMap<String, IShopItem>();
+    Map<String, IShopItem> moneyShopItems = new HashMap<String, IShopItem>();
+    Map<String, IShopItem> xpShopItems = new HashMap<String, IShopItem>();
 
-	public ShopInventoryManager(Map<String, IShopItem> shopItems)
-	{
-		this.setShopItems(shopItems);
-		Bukkit.getPluginManager().registerEvents(this, OstEconomyPlugin.getPlugin());
+    public ShopInventoryManager(Map<String, IShopItem> shopItems) {
+	this.setShopItems(shopItems);
+	Bukkit.getPluginManager().registerEvents(this, OstEconomyPlugin.getPlugin());
+    }
+
+    public void setShopItems(Map<String, IShopItem> shopItems) {
+	this.shopItems = shopItems;
+	for (IShopItem item : shopItems.values()) {
+	    if (item.getMoneyCost() != 0)
+		this.moneyShopItems.put(item.getName(), item);
+	    else if (item.getXpCost() != 0)
+		this.xpShopItems.put(item.getName(), item);
 	}
+    }
 
-	public void setShopItems(Map<String, IShopItem> shopItems)
-	{
-		this.shopItems = shopItems;
-		for (IShopItem item : shopItems.values())
-		{
-			if (item.getMoneyCost() != 0)
-				this.moneyShopItems.put(item.getName(), item);
-			else if (item.getXpCost() != 0)
-				this.xpShopItems.put(item.getName(), item);
-		}
+    public void CreateShowMoneyShop(EPlayer player) {
+	ShopInventory shop = new ShopInventory(player.getPlayer(), "Money Shop - You have $" + player.getMoney() + ".", moneyShopItems);
+	shopInventories.put(player.getPlayer(), shop);
+	shop.Show();
+    }
+
+    public void CreateShowXpShop(EPlayer player) {
+	ShopInventory shop = new ShopInventory(player.getPlayer(), "XP Shop - You have $" + player.getXp() + " XP.", xpShopItems);
+	// CustomInventory shop = new CustomInventory(player, 27, "LOL");
+	shopInventories.put(player.getPlayer(), shop);
+	shop.Show();
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+	if (event.getPlayer() instanceof Player) {
+	    Player player = (Player) event.getPlayer();
+	    if (shopInventories.containsKey(player)) {
+		shopInventories.remove(player);
+		player.sendMessage("Shop closed.");
+	    }
 	}
+    }
 
-	public void CreateShowMoneyShop(EPlayer player)
-	{
-		ShopInventory shop = new ShopInventory(player.getPlayer(), "Money Shop - You have $" + player.getMoney() + ".", moneyShopItems);
-		shopInventories.put(player.getPlayer(), shop);
-		shop.Show();
-	}
-
-	public void CreateShowXpShop(EPlayer player)
-	{
-		ShopInventory shop = new ShopInventory(player.getPlayer(), "XP Shop - You have $" + player.getXp() + " XP.", xpShopItems);
-		// CustomInventory shop = new CustomInventory(player, 27, "LOL");
-		shopInventories.put(player.getPlayer(), shop);
-		shop.Show();
-	}
-
-	@EventHandler
-	public void onInventoryClose(InventoryCloseEvent event)
-	{
-		if (event.getPlayer() instanceof Player)
-		{
-			Player player = (Player) event.getPlayer();
-			if (shopInventories.containsKey(player))
-			{
-				shopInventories.remove(player);
-				player.sendMessage("Shop closed.");
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+	if (event.getWhoClicked() instanceof Player) {
+	    Player player = (Player) event.getWhoClicked();
+	    if (shopInventories.containsKey(player)) {
+		ShopInventory shop = shopInventories.get(player);
+		ItemStack itemStack = event.getCurrentItem();
+		if (itemStack != null) {
+		    ItemMeta meta = itemStack.getItemMeta();
+		    if (meta != null) {
+			String name = meta.getDisplayName();
+			IShopItem shopItem = shop.getItems().get(name);
+			if (shopItem != null) {
+			    OstEconomyPlugin.getPlugin().BuyShopItem(player, name, 1);
 			}
+		    }
+		    event.setCancelled(true);
 		}
+	    }
 	}
-
-	@EventHandler
-	public void onInventoryClick(InventoryClickEvent event)
-	{
-		if (event.getWhoClicked() instanceof Player)
-		{
-			Player player = (Player) event.getWhoClicked();
-			if (shopInventories.containsKey(player))
-			{
-				ShopInventory shop = shopInventories.get(player);
-				ItemStack itemStack = event.getCurrentItem();
-				if (itemStack != null)
-				{
-					ItemMeta meta = itemStack.getItemMeta();
-					if (meta != null)
-					{
-						String name = meta.getDisplayName();
-						IShopItem shopItem = shop.getItems().get(name);
-						if (shopItem != null)
-						{
-							OstEconomyPlugin.getPlugin().BuyShopItem(player, name, 1);
-						}
-					}
-					event.setCancelled(true);
-				}
-			}
-		}
-	}
+    }
 }
