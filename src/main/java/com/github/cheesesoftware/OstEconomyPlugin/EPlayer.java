@@ -136,8 +136,12 @@ public class EPlayer {
 
     public void GiveMoney(long money) {
 	this.money += money;
-	this.xp += money;
 	this.Save();
+    }
+    
+    public void GiveXP(long xp) {
+    	this.xp += xp;
+    	this.Save();
     }
 
     public List<Material> getXpInventory() {

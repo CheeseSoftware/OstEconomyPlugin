@@ -11,6 +11,8 @@ public interface IOstEconomy extends Plugin {
     public long getXp(Player player);
 
     public void GiveMoney(Player player, long money);
+    
+    public void GiveXP(Player player, long xp);
 
     public void ResetStats(Player player);
 

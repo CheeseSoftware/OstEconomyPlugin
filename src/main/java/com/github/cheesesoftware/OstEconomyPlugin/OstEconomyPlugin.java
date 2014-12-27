@@ -216,6 +216,12 @@ public class OstEconomyPlugin extends JavaPlugin implements IOstEconomy, Listene
 	if (ePlayers.containsKey(player))
 	    ePlayers.get(player).GiveMoney(money);
     }
+    
+    @Override
+    public void GiveXP(Player player, long xp) {
+	if (ePlayers.containsKey(player))
+	    ePlayers.get(player).GiveXP(xp);
+    }
 
     @Override
     public void ResetStats(Player player) {
